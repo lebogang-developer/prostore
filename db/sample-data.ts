@@ -12,7 +12,7 @@ const sampleData = {
       name: 'Jane',
       email: 'user@example.com',
       password: hashSync('123456', 10),
-      role: 'admin',
+      role: 'user',
     },
   ],
   products: [
