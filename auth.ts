@@ -20,8 +20,8 @@ export const config = {
     credentials: {
         email: {type: 'email'},
         password: {type: 'password'}
-    }
-    async authorize(credentials){
+    },
+    async authorize(credentials) {
         if (credentials == null) return null;
 
         // Find user in the database
