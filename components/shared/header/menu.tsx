@@ -8,6 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import UserButton from './user-button';
 import ModeToggle from './mode-toggle';
 
 const Menu = () => {
@@ -20,11 +21,7 @@ const Menu = () => {
             <ShoppingCart /> Cart
           </Link>
         </Button>
-        <Button asChild>
-          <Link href='/sign-in'>
-            <UserIcon /> Sign In
-          </Link>
-        </Button>
+        <UserButton />
       </nav>
       {/* Mobile Menu */}
       <nav className='md:hidden'>
@@ -40,11 +37,7 @@ const Menu = () => {
                 <ShoppingCart /> Cart
               </Link>
             </Button>
-            <Button asChild>
-              <Link href='/sign-in'>
-                <UserIcon /> Sign In
-              </Link>
-            </Button>
+            <UserButton />
             <SheetDescription></SheetDescription>
           </SheetContent>
         </Sheet>
