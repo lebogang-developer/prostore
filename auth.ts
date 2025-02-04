@@ -1,66 +1,73 @@
-import NextAuth from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from './db/prisma';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { compareSync } from 'bcrypt-ts-edge';
-import type { NextAuthConfig } from 'next-auth';
 
-export const config = {
+import NextAuth from 'next-auth';
+import { prisma } from '@/db/prisma';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import type { NextAuthConfig } from 'next-auth';
+import { compareSync } from 'bcrypt-ts-edge';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+
+export const config() {
   pages: {
-    signIn: '/sign-in',
-    error: '/sign-in',
-  },
+    signIn: '/sign-in';
+    error: '/sign-in';
+  };
   session: {
-    strategy: 'jwt',
-    // Seconds - How long until an idle session expires and is no longer valid.
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
+    strategy: 'jwt';
+    maxAge: 30 * 24 * 60 * 60; // 30 days
+  };
   adapter: PrismaAdapter(prisma),
-  providers: [CredentialsProvider({
-    credentials: {
-        email: {type: 'email'},
-        password: {type: 'password'}
-    },
-    async authorize(credentials) {
+  providers: [
+    CredentialsProvider ({
+      credentials: {
+        email: { type: 'email' },
+        password: { type: 'password' },
+      },
+      async authorize(credentials) {
         if (credentials == null) return null;
 
-        // Find user in the database
+        // Find user in database
         const user = await prisma.user.findFirst({
-            where: {
-                email: credentials.email as string,
-            }
-        });
-        // Check if the user exists and if password matches
-        if (user && user.password) {
-            const isMatch = compareSync(credentials.password as string, user.password)
-            // If password is correct, return user
-            if (isMatch) {
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role
-                }
-            }
-        }
-        // If user does not exist or password does not match, retuen null
-        return null;
-    },
-  }),
-],
-  callbacks: {
-    async session({session, user, trigger, token }): any {
+          where: {
+            email: credentials.email as string,
+          },
+    });
+     // Check if user exists and if the password matches
+     if (user && user.password) {
+      const isMatch = await compareSync(
+        credentials.password as string,
+        user.password
+      );
+
+      // If password is correct, return user
+      if (isMatch) {
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
+      }
+    }
+    // If user does not exist or password does not match return null
+    return null;
+  },
+}),
+  ];
+  callback: {
+    async session ({ session, user, trigger, token }: any ) {
       // Set the user ID from the token
       session.user.id = token.sub;
-
-      // If there is an update then set user name
-      if(trigger === 'update') {
+      
+      // If there is an update, set the user name
+      if (trigger === 'update') {
         session.user.name = user.name;
       }
-      
-      return session
+
+      return session;
+
     }
   }
- } satisfies NextAuthConfig;
+}satisfies NextAuthConfig;
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config);
+export const {handlers, auth, signIn, signOut} = NextAuth(config);

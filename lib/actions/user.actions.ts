@@ -1,7 +1,9 @@
 'use server';
 
-import { signInFormSchema } from '../validators';
+import { signInFormSchema, signUpFormSchema } from '../validators';
 import { signIn, signOut } from '@/auth';
+import { hashSync } from 'bcrypt-ts-edge';
+import { prisma } from '@/db/prisma';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
 
 // Sign in users with credentials
@@ -29,4 +31,11 @@ export async function signInWithCredentials(
 // Signout user
 export async function signOutUser() {
   await signOut();
+}
+
+// Sign up user
+export async function signUpUser(prevState: unknown, formData: FormData) {
+  try {
+    const user = signUpFormSchema({});
+  } catch (error) {}
 }
