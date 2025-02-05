@@ -9,7 +9,7 @@ import { formatError } from '../utils';
 // import { isRedirectError } from 'next/navigation';
 
 // Helper function to check if an error is a redirect error
-function isRedirectError(error) {
+function isRedirectError(error: unknown): boolean {
   return error instanceof Error && error.message.includes('redirect');
 }
 
