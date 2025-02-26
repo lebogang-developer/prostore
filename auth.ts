@@ -62,7 +62,7 @@ export const config = {
       session.user.role = token.role;
       session.user.name = token.name;
 
-      console.log(token);
+      // console.log(token);
 
       // If there is an update, set the user name
       if (trigger === 'update') {
@@ -73,6 +73,7 @@ export const config = {
     async jwt({ token, user, trigger, session }: any) {
       // Assign user fields to the token
       if (user) {
+        token.id = user.id;
         token.role = user.role;
 
         // If user has no name, then use the email
@@ -84,11 +85,51 @@ export const config = {
             data: { name: token.name },
           });
         }
+        if (trigger === 'signIn' || trigger === 'signUp') {
+          const cookiesObject = await cookies();
+          const sessionCartId = cookiesObject.get('sessionCartId')?.value;
+
+          if (sessionCartId) {
+            const sessionCart = await prisma.cart.findFirst({
+              where: { sessionCartId },
+            });
+
+            if (sessionCart) {
+              // Delete current user cart
+              await prisma.cart.deleteMany({
+                where: { userId: user.id },
+              });
+              // Assign new cart
+              await prisma.cart.update({
+                where: { id: sessionCart.id },
+                data: { userId: user.id },
+              });
+            }
+          }
+        }
       }
+
       return token;
     },
 
     authorized({ request, auth }: any) {
+      // Array of regex patterns of paths I want to protect
+      const protectedPaths = [
+        /\/shipping-address/,
+        /\/payment-method/,
+        /\/place-order/,
+        /\/profile/,
+        /\/user\/(.*)/,
+        /\/order\/(.*)/,
+        /\/admin/,
+      ];
+
+      // Get the pathname from the req URL object
+      const { pathname } = request.nextUrl;
+
+      // Check if a user is not authenticated and not accessing a protected path
+      if (!auth && protectedPaths.some((p) => p.test(pathname))) return false;
+
       // Check for session cart cookie
       if (!request.cookies.get('sessionCartId')) {
         // Generate new session cart ID cookie
