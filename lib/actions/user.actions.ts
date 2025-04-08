@@ -4,14 +4,16 @@ import {
   signInFormSchema,
   signUpFormSchema,
   shippingAddressSchema,
+  paymentMethodSchema
 } from '../validators';
+import {z} from 'zod';
 import { auth, signIn, signOut } from '@/auth';
 import { hashSync } from 'bcrypt-ts-edge';
 import { prisma } from '@/db/prisma';
 import { ShippingAddress } from '@/types';
 import { formatError } from '../utils';
 // import { isRedirectError } from 'next/dist/client/components/redirect';
-// import { isRedirectError } from 'next/navigation';
+
 
 // Helper function to check if an error is a redirect error
 function isRedirectError(error: unknown): boolean {
@@ -105,6 +107,34 @@ export async function updateUserAddress(data: ShippingAddress) {
     await prisma.user.update({
       where: { id: currentUser.id },
       data: { address },
+    });
+
+    return {
+      success: true,
+      message: 'User updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// Update user's payment method
+export async function updateUserPaymentMethod(
+  data: z.infer<typeof paymentMethodSchema>
+) {
+  try {
+    const session = await auth();
+    const currentUser = await prisma.user.findFirst({
+      where: { id: session?.user?.id },
+    });
+
+    if (!currentUser) throw new Error('User not found');
+
+    const paymentMethod = paymentMethodSchema.parse(data);
+
+    await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { paymentMethod: paymentMethod.type },
     });
 
     return {
