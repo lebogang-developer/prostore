@@ -13,7 +13,6 @@ const AddToCart = ({ cart, item }: { cart?: Cart; item: CartItem }) => {
   const router = useRouter();
   const { toast } = useToast();
 
-
   const [isPending, startTransition] = useTransition();
 
   const handleAddToCart = async () => {
